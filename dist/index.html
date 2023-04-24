@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kvazaar wasm demo</title>
+</head>
+<body>
+<video id="echo" muted autoplay></video>
+</body>
+<script>
+    const worker = new Worker("kvazaar-wasm-demo.worker.js", {type: "module"});
+    worker.addEventListener("message", (evt) => {
+        if (evt.data.status === "initDone") {
+            // retrieve input stream from user agent
+            navigator.mediaDevices.getDisplayMedia({video: true})
+                .then((stream) => {
+                    worker.postMessage({
+                        cmd: "createEncoder",
+                        width: stream.getVideoTracks()[0].getSettings().width.toString(),
+                        height: stream.getVideoTracks()[0].getSettings().height.toString(),
+                        threads: "0",
+                        gop: "lp-g4d3t1",
+                        owf: "0",
+                        loopInterval: 1
+                    });
+                    // create a frame-by-frame reader from the input stream
+                    const processor = new MediaStreamTrackProcessor(stream.getTracks()[0]);
+                    processor.readable.pipeTo(new WritableStream({
+                        // transfer each frame ("chunk") to the worker
+                        write: (chunk) => {
+                            worker.postMessage({
+                                cmd: "encode",
+                                frame: chunk
+                            }, [chunk]);
+                        }
+                    })).finally(() => {
+                        console.log("closing");
+                        stream.getTracks().forEach(t => t.stop());
+                        worker.postMessage({cmd: "closeEncoder"});
+                    });
+                    const video = document.getElementById("echo");
+                    video.srcObject = stream;
+                    video.width = stream.getVideoTracks()[0].getSettings().width / 2;
+                    video.height = stream.getVideoTracks()[0].getSettings().height / 2;
+                    const elem = document.createElement("div");
+                    elem.textContent = "See log for encoded frames. Depending on your resources, encoding might take some seconds.";
+                    document.body.appendChild(elem);
+                })
+                .catch((err) => console.log("Must choose input video to run demo.", err));
+        }
+    });
+</script>
+</html>
