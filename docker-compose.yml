@@ -9,6 +9,17 @@ services:
     command: ["/bin/sh", "/src/build_coder.sh"]
     environment:
       BUILD_NAME: kvazaar-encoder
+  build-kvazaar-wasm-with-sanitizing:
+    build:
+      context: .
+    volumes:
+      - "./src:/src:ro"
+      - "./dist:/dist:rw"
+      - "./.cache:/cache:rw"
+    command: ["/bin/sh", "/src/build_coder.sh"]
+    environment:
+      BUILD_NAME: kvazaar-encoder
+      EXTRA_BUILD_FLAGS: "-fsanitize=undefined -fsanitize=address"
   serve:
     image: node:19.7.0-alpine3.16
     volumes:
@@ -22,4 +33,18 @@ services:
       - "8080:80"
     depends_on:
       build-kvazaar-wasm:
+        condition: service_completed_successfully
+  serve-with-sanitizing:
+    image: node:19.7.0-alpine3.16
+    volumes:
+      - "./file-server:/file-server:ro"
+      - "./dist:/public:ro"
+    command: ["/bin/sh", "/file-server/start-server.sh"]
+    environment:
+      HOME_DIR: "/public"
+      SERVER_PATH: /file-server
+    ports:
+      - "8080:80"
+    depends_on:
+      build-kvazaar-wasm-with-sanitizing:
         condition: service_completed_successfully

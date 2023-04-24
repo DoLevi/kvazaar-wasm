@@ -2,7 +2,7 @@
 echo "Start building using emcc ..."
 START=$(date +%s)
 emcc -O3 -g  \
-  -fsanitize=undefined -fsanitize=address \
+  $EXTRA_BUILD_FLAGS \
   -I /kvazaar/src \
   -s MODULARIZE=1 \
   -s EXPORT_ES6=1 \
