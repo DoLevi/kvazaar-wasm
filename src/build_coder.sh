@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Start building using emcc ..."
 START=$(date +%s)
-emcc -O3 -g  \
+emcc -O3 \
   $EXTRA_BUILD_FLAGS \
   -I /kvazaar/src \
   -s MODULARIZE=1 \

@@ -7,7 +7,9 @@ The `docker-compose.yml` file will build the WebAssembly files and Javascript wr
 `dist/` is then mounted into a NodeJS-Container and served using a plain `http.createServer`.
 
 Once the `serve`/`serve-with-sanitizing` container started you can access the demo webpage at `localhost:8080/index.html`.
+Choose a display source to use for encoding and confirm in your browser's dialog.
 
+Now, your webpage should display the direct feedback of your chosen video source and the DevTools logs should start logging encoded frames.
 
 ## Running the demo
 
@@ -46,3 +48,18 @@ Changes to files in `dist/` are not hot-reloaded but refreshing the webpage (dis
 
 Changes to files in `src/` must be recompiled using `docker-compose up build-kvazaar-wasm-with-sanitizing` or `docker-compose up build-kvazaar-wasm` and then refreshing the webpage.
 To increase build speed a build cache is kept in `.cache/`.
+
+## Debugging the WebAssembly
+To debug the WebAssembly it is recommended to run the demo in Google Chrome with wasm-debugging enabled.
+Instructions to install this can be found [here](https://developer.chrome.com/blog/wasm-debugging-2020/).
+
+These instructions include
+* Installing a [browser extension](https://goo.gle/wasm-debugging-extension)
+* Enabling debugging with Chrome DevTools > Gear Icon > Experimtens panel > WebAssembly Debugging: Enable DWARF support.
+
+Debugging using logs in C can be done by adding the following statement, included in the `emscripten.h` header file:
+```C
+EM_ASM({
+    console.log($0, "+", $1, "=", $2); // this is regular JavaScript
+}, 1, 2, 1 + 2);
+```

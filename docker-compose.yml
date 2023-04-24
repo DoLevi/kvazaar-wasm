@@ -19,7 +19,7 @@ services:
     command: ["/bin/sh", "/src/build_coder.sh"]
     environment:
       BUILD_NAME: kvazaar-encoder
-      EXTRA_BUILD_FLAGS: "-fsanitize=undefined -fsanitize=address -sASSERTIONS"
+      EXTRA_BUILD_FLAGS: "-g -fsanitize=undefined -fsanitize=address -sASSERTIONS"
   serve:
     image: node:19.7.0-alpine3.16
     volumes:
